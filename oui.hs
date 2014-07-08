@@ -1,4 +1,4 @@
-import Data.Char
+import qualified Data.Char as C
 import Text.Parsec hiding (space, whitespace, spaces)
 import Text.Parsec.String
 
@@ -12,7 +12,7 @@ data Tree a = CONS (Tree a) (Tree a)
 type Symbol = String
 type Expression = Tree Symbol
 type Boole = Expression -- NIL and T
-type Function = Expression -- NIL and T
+type Function = Expression -- lambda
 type Program = [Expression]
 
 -- Parser
@@ -38,7 +38,7 @@ atom :: Parser Expression
 atom = fmap (readToken . uppercase) token where
   token = many1 valid
   valid = alphaNum <|> char '-'
-  uppercase = map toUpper
+  uppercase = map C.toUpper
   readToken t = case reads t of
                   [(x, "")] -> x
                   _ -> Token t
@@ -53,9 +53,10 @@ truthy False = NIL
 truthy _ = T
 
 atomp :: Expression -> Boole
-atomp NIL = truthy False
-atomp (CONS _ _) = truthy False
-atomp _ = truthy True
+atomp e = truthy . isAtom $ e where
+  isAtom NIL = False
+  isAtom (CONS _ _) = False
+  isAtom _ = True
 
 car :: Expression -> Expression
 car NIL = NIL
@@ -66,7 +67,7 @@ cdr NIL = NIL
 cdr (CONS _ tail) = tail
 
 eq :: Expression -> Expression -> Boole
-eq x y = truthy $ x == y
+eq x = truthy . (==x)
 
 -- S-Functions
 quote :: Expression -> Expression
