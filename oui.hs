@@ -48,10 +48,14 @@ spaces = many1 space
 space = oneOf $ ',' : ' ' : '\t' : '\r' : '\n' : []
 
 -- F-Functions
+truthy :: Bool -> Boole
+truthy False = NIL
+truthy _ = T
+
 atomp :: Expression -> Boole
-atomp NIL = False
+atomp NIL = truthy False
 atomp (CONS x _) = atomp x
-atomp _ = True
+atomp _ = truthy True
 
 car :: Expression -> Expression
 car NIL = NIL
@@ -62,7 +66,7 @@ cdr NIL = NIL
 cdr (CONS _ tail) = tail
 
 eq :: Expression -> Expression -> Boole
-eq = (==)
+eq x y = truthy $ x == y
 
 -- S-Functions
 quote :: Expression -> Expression
