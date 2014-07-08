@@ -3,7 +3,7 @@ import Text.Parsec hiding (space, whitespace, spaces)
 import Text.Parsec.String
 
 -- Data Structures
-data Tree a = CONS (Tree a) (Tree a)
+data Tree a = (Tree a) `CONS` (Tree a)
             | NIL | T
             | CAR | CDR | ATOMP | EQ | QUOTE | COND | LAMBDA
             | Token a
@@ -30,7 +30,7 @@ expression tail = do
     whitespace
     car' <- atom <|> (list tail) <|> (return tail)
     cdr' <- restExpression <|> (return tail)
-    return $ CONS car' cdr' where
+    return $ car' `CONS` cdr' where
 
       restExpression = spaces >> expression tail
 
@@ -47,38 +47,39 @@ whitespace = many space
 spaces = many1 space
 space = oneOf $ ',' : ' ' : '\t' : '\r' : '\n' : []
 
--- F-Functions
+-- Utils
 truthy :: Bool -> Boole
 truthy False = NIL
 truthy _ = T
 
+empty = NIL `CONS` NIL :: Expression
+
+-- F-Functions
 atomp :: Expression -> Boole
 atomp e = truthy . isAtom $ e where
   isAtom NIL = False
-  isAtom (CONS _ _) = False
+  isAtom (_ `CONS` _) = False
   isAtom _ = True
 
 car :: Expression -> Expression
 car NIL = NIL
-car (CONS head _) = head
+car (head `CONS` _) = head
 
 cdr :: Expression -> Expression
 cdr NIL = NIL
-cdr (CONS _ tail) = tail
+cdr (_ `CONS` tail) = tail
 
 eq :: Expression -> Expression -> Boole
-eq x = truthy . (==x)
+eq NIL empty = truthy True
+eq x y = truthy $ x == y
 
 -- S-Functions
 quote :: Expression -> Expression
 quote x = x
 
 -- TODO
+-- write tests for parser
 -- eval
 -- cond
 -- apply
 -- lamba
-
--- append :: Expression -> Expression -> Expression
--- append NIL = quote
--- append (CONS s rest) = append rest . CONS s
