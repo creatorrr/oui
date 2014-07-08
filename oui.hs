@@ -54,7 +54,7 @@ truthy _ = T
 
 atomp :: Expression -> Boole
 atomp NIL = truthy False
-atomp (CONS x _) = atomp x
+atomp (CONS _ _) = truthy False
 atomp _ = truthy True
 
 car :: Expression -> Expression
@@ -73,8 +73,10 @@ quote :: Expression -> Expression
 quote x = x
 
 -- TODO
--- lamba
+-- eval
 -- cond
+-- apply
+-- lamba
 
 -- append :: Expression -> Expression -> Expression
 -- append NIL = quote
