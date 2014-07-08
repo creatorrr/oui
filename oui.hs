@@ -1,4 +1,6 @@
 import qualified Data.Char as C
+import qualified Control.Monad as M
+
 import Text.Parsec hiding (space, whitespace, spaces)
 import Text.Parsec.String
 
@@ -47,13 +49,6 @@ whitespace = many space
 spaces = many1 space
 space = oneOf $ ',' : ' ' : '\t' : '\r' : '\n' : []
 
--- Utils
-truthy :: Bool -> Boole
-truthy False = NIL
-truthy _ = T
-
-empty = NIL `CONS` NIL :: Expression
-
 -- F-Functions
 atomp :: Expression -> Boole
 atomp e = truthy . isAtom $ e where
@@ -77,9 +72,36 @@ eq x y = truthy $ x == y
 quote :: Expression -> Expression
 quote x = x
 
+-- Utils
+truthy :: Bool -> Boole
+truthy False = NIL
+truthy _ = T
+
+empty = NIL `CONS` NIL :: Expression
+
+-- Tests
+type TestTable = [(String, Program)] -- [(actual, expected)]
+table :: TestTable
+table =
+    ("()", [empty]) :
+    ("(T)", [T `CONS` NIL]) :
+    []
+
+runParseTests :: TestTable -> IO Bool
+runParseTests = andM . (map equate) . parseAll where
+  andM = foldl liftAnd (return True)
+  liftAnd = M.liftM2 (&&)
+  equate (a, e) = fmap (==e) a
+
+  parseAll = map parsePair
+  parsePair (s, k) = ((parseExpr s), k)
+  parseExpr input = case (parse program "oui" input) of
+                      Left err -> do {print err; return [NIL]}
+                      Right x -> return x
+
 -- TODO
--- write tests for parser
 -- eval
 -- cond
 -- apply
 -- lamba
+-- write moar tests for parser
