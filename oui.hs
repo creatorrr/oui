@@ -102,6 +102,7 @@ table :: TestTable
 table =
     ("()", [empty]) :
     ("(T T T)", [T `CONS` (T `CONS` (T `CONS` NIL))]):
+    ("(())", [(NIL `CONS` NIL) `CONS` NIL]):
     ("(T)", [T `CONS` NIL]) :
     []
 
