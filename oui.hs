@@ -5,6 +5,7 @@ import Text.Parsec hiding (space, whitespace, spaces)
 import Text.Parsec.String
 
 -- Data Structures
+infixr 7 `CONS`
 data Tree a = (Tree a) `CONS` (Tree a)
             | NIL | T
             | CAR | CDR | ATOMP | EQ | QUOTE | COND | LAMBDA
@@ -52,25 +53,25 @@ space = oneOf $ ',' : ' ' : '\t' : '\r' : '\n' : []
 -- Printer
 type ShowExpression = Symbol -> String
 
-showExpression :: (Eq a, Show a) => Tree a -> ShowExpression
-showExpression (Token a) = shows a
-showExpression (car' `CONS` NIL)
-  | car' == NIL = ('(':) . (')':)
-  | otherwise = ('(':) . showExpression car' . (')':)
+showExpression :: Expression -> ShowExpression
+showExpression (Token a) = (a++)
+showExpression NIL = (""++)
+showExpression (car' `CONS` NIL) = showExpression car' . (')':)
 
-showExpression (car' `CONS` cdr') = showExpression car' . (' ':) . showExpression cdr'
+showExpression (car' `CONS` cdr')
+  | atomp . car $ cdr' = showExpression car' . (' ':) . showExpression cdr'
+  | otherwise = showExpression car' . (' ':) . ('(':) . showExpression cdr'
+
 showExpression a = shows a
 
 showProgram :: Program -> String
 showProgram [] = ""
-showProgram (e:es) = showExpression e $ showProgram es
+showProgram (e:es) = ('(':) . showExpression e $ showProgram es
 
 -- F-Functions
-atomp :: Expression -> Boole
-atomp e = truthy . isAtom $ e where
-  isAtom NIL = False
-  isAtom (_ `CONS` _) = False
-  isAtom _ = True
+atomp :: Expression -> Bool
+atomp (_ `CONS` _) = False
+atomp _ = True
 
 car :: Expression -> Expression
 car NIL = NIL
@@ -80,9 +81,9 @@ cdr :: Expression -> Expression
 cdr NIL = NIL
 cdr (_ `CONS` cdr') = cdr'
 
-eq :: Expression -> Expression -> Boole
-eq NIL empty = truthy True
-eq x y = truthy $ x == y
+eq :: Expression -> Expression -> Bool
+eq NIL empty = True
+eq x y = x == y
 
 -- S-Functions
 quote :: Expression -> Expression
@@ -100,6 +101,7 @@ type TestTable = [(String, Program)] -- [(actual, expected)]
 table :: TestTable
 table =
     ("()", [empty]) :
+    ("(T T T)", [T `CONS` (T `CONS` (T `CONS` NIL))]):
     ("(T)", [T `CONS` NIL]) :
     []
 
@@ -128,3 +130,4 @@ testPrinter = and . (map equate) . printAll where
 -- lamba
 -- write moar tests
 -- add error messages to Parser
+-- decide if we want to keep NIL == empty
