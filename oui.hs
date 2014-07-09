@@ -6,7 +6,7 @@ import Text.Parsec.String
 
 -- Data Structures
 infixr 7 `CONS`
-data Tree a = (Tree a) `CONS` (Tree a)
+data Tree a = (Tree a) `CONS` (Tree a) | ROOT'
             | NIL | T
             | CAR | CDR | ATOMP | EQ | QUOTE | COND | LAMBDA
             | Token a
@@ -22,7 +22,7 @@ type Program = [Expression]
 program :: Parser Program
 program = do
     whitespace
-    list NIL `sepEndBy1` spaces
+    list ROOT' `sepEndBy1` spaces
 
 list :: Expression -> Parser Expression
 list root = parenthesized $ expression root where
@@ -53,20 +53,23 @@ space = oneOf $ ',' : ' ' : '\t' : '\r' : '\n' : []
 -- Printer
 type ShowExpression = Symbol -> String
 
-showExpression :: Expression -> ShowExpression
-showExpression (Token a) = (a++)
-showExpression NIL = (""++)
-showExpression (car' `CONS` NIL) = showExpression car' . (')':)
+-- showExpression :: Expression -> ShowExpression
+-- showExpression (Token a) = (a++)
+-- showExpression NIL = (""++)
+-- showExpression (car' `CONS` NIL) = showExpression car' . (')':)
+--
+-- showExpression (car' `CONS` cdr')
+  -- | atomp . car $ cdr' = showExpression car' . (' ':) . showExpression cdr'
+  -- | otherwise = showExpression car' . (' ':) . ('(':) . showExpression cdr'
+--
+-- showExpression a = shows a
+--
+-- showProgram :: Program -> String
+-- showProgram [] = ""
+-- showProgram (e:es) = ('(':) . showExpression e $ showProgram es
 
-showExpression (car' `CONS` cdr')
-  | atomp . car $ cdr' = showExpression car' . (' ':) . showExpression cdr'
-  | otherwise = showExpression car' . (' ':) . ('(':) . showExpression cdr'
-
-showExpression a = shows a
-
-showProgram :: Program -> String
-showProgram [] = ""
-showProgram (e:es) = ('(':) . showExpression e $ showProgram es
+showProgram :: a
+showProgram = undefined
 
 -- F-Functions
 atomp :: Expression -> Bool
@@ -74,15 +77,14 @@ atomp (_ `CONS` _) = False
 atomp _ = True
 
 car :: Expression -> Expression
-car NIL = NIL
+car (ROOT' `CONS` ROOT') = ROOT' `CONS` ROOT'
 car (car' `CONS` _) = car'
 
 cdr :: Expression -> Expression
-cdr NIL = NIL
+cdr (ROOT' `CONS` ROOT') = ROOT' `CONS` ROOT'
 cdr (_ `CONS` cdr') = cdr'
 
 eq :: Expression -> Expression -> Bool
-eq NIL empty = True
 eq x y = x == y
 
 -- S-Functions
@@ -94,16 +96,14 @@ truthy :: Bool -> Boole
 truthy False = NIL
 truthy _ = T
 
-empty = NIL `CONS` NIL :: Expression
-
 -- Tests
 type TestTable = [(String, Program)] -- [(actual, expected)]
 table :: TestTable
 table =
-    ("()", [empty]) :
-    ("(T T T)", [T `CONS` (T `CONS` (T `CONS` NIL))]):
-    ("(())", [(NIL `CONS` NIL) `CONS` NIL]):
-    ("(T)", [T `CONS` NIL]) :
+    ("()", [ROOT' `CONS` ROOT']) :
+    ("(T T T)", [T `CONS` (T `CONS` (T `CONS` ROOT'))]):
+    ("(())", [(ROOT' `CONS` ROOT') `CONS` ROOT']):
+    ("(T)", [T `CONS` ROOT']) :
     []
 
 testParser :: TestTable -> IO Bool
@@ -129,6 +129,6 @@ testPrinter = and . (map equate) . printAll where
 -- cond
 -- apply
 -- lamba
--- write moar tests
 -- add error messages to Parser
--- decide if we want to keep NIL == empty
+-- make tests pass
+-- add support for dotted lists
