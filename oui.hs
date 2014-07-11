@@ -57,6 +57,17 @@ whitespace = many space
 spaces = many1 space
 space = oneOf $ ',' : ' ' : '\t' : '\r' : '\n' : []
 
+-- Folder
+foldTreeL :: (Tree a -> Tree b -> Tree a) -> Tree a -> Tree b -> Tree a
+foldTreeL f v = foldl' where
+  foldl' (car' `CONS` cdr') = (foldl' car') `f` cdr'
+  foldl' a = v `f` a
+
+foldTreeR :: (Tree a -> Tree b -> Tree b) -> Tree b -> Tree a -> Tree b
+foldTreeR f v = foldr' where
+  foldr' (car' `CONS` cdr') = car' `f` (foldr' cdr')
+  foldr' a = a `f` v
+
 -- Printer
 type ShowExpression = Symbols -> String
 
