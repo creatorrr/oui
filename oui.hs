@@ -41,7 +41,13 @@ expression root = do
       restExpression = spaces >> expression root
 
 atom :: Parser Expression
-atom = fmap (readToken . uppercase) token where
+atom = fmap (readToken . uppercase) atom' where
+  atom' = do
+    whitespace
+    t <- token
+    return t
+
+-- endBy token space
   token = many1 valid
   valid = alphaNum <|> char '-'
   uppercase = map C.toUpper
@@ -57,25 +63,26 @@ space = oneOf $ ',' : ' ' : '\t' : '\r' : '\n' : []
 type ShowExpression = Symbols -> String
 
 showExpr :: Expression -> ShowExpression
-showExpr (car' `CONS` cdr')
-  | not . atomp $ car' = ('(':) . showExpr car' . (' ':) . showExpr cdr'
-  | otherwise = showExpr car' . (' ':) . showExpr cdr'
+-- showExpr (car' `CONS` cdr') = ('[':) . showExpr car' . (' ':) . showExpr cdr' . (']':)
+--
+-- showExpr ROOT' = (')':)
+-- showExpr (Token a) = (a++)
+-- showExpr a = shows a
 
-showExpr ROOT' = (""++)
-showExpr (Token a) = (a++)
-showExpr a = shows a
+-- showProgram :: Program -> String
+-- showProgram [] = ""
+-- showProgram (e:es) = ('(':) . showExpr e $ showProgram es
 
-showProgram :: Program -> String
-showProgram [] = ""
-showProgram (e:es) = showExpr e $ showProgram es
-
--- showProgram :: a
--- showProgram = undefined
+showProgram :: a
+showProgram = undefined
 
 -- F-Functions
 atomp :: Expression -> Bool
 atomp (_ `CONS` _) = False
 atomp _ = True
+
+listp :: Expression -> Bool
+listp = not . atomp
 
 car :: Expression -> Expression
 car (ROOT' `CONS` ROOT') = ROOT' `CONS` ROOT'
@@ -104,10 +111,10 @@ type ResultTable = [(Parsed, Parsed)]
 
 table :: TestTable
 table =
-    ("()", [ROOT' `CONS` ROOT']) :
-    ("(T T T)", [T `CONS` (T `CONS` (T `CONS` ROOT'))]):
-    ("(())", [(ROOT' `CONS` ROOT') `CONS` ROOT']):
-    ("(T)", [T `CONS` ROOT']) :
+    ("( )", [ROOT' `CONS` ROOT']) :
+    ("(T T T )", [T `CONS` (T `CONS` (T `CONS` ROOT'))]):
+    ("(( ))", [(ROOT' `CONS` ROOT') `CONS` ROOT']):
+    ("(T )", [T `CONS` ROOT']) :
     []
 
 test :: TestTable -> ResultTable
@@ -117,6 +124,7 @@ test = map exec where
   nil = do return [NIL]
 
 -- TODO
+-- reconstitute NIL as empty list
 -- make tests pass
 -- implement tree fold
 -- eval
