@@ -1,6 +1,5 @@
 # TODO
 
- - reconstitute NIL as empty list
  - implement tree fold
  - add collapse function
  - fix printer

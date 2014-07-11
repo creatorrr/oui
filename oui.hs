@@ -6,7 +6,7 @@ import Text.Parsec.String
 
 -- Data Structures
 infixr 7 `CONS`
-data Tree a = Tree a `CONS` Tree a | ROOT'
+data Tree a = Tree a `CONS` Tree a
             | NIL | T
             | CAR | CDR | ATOMP | EQ | QUOTE | COND | LAMBDA
             | Token a
@@ -15,7 +15,6 @@ data Tree a = Tree a `CONS` Tree a | ROOT'
 type Symbols = String
 type Expression = Tree Symbols
 type Boole = Expression -- NIL and T
-type Function = Expression -- lambda
 type Program = [Expression]
 
 -- Parser
@@ -25,7 +24,7 @@ parseOui = parse program "oui"
 program :: Parser Program
 program = do
     whitespace
-    list ROOT' `sepEndBy1` spaces
+    list NIL `sepEndBy1` spaces
 
 list :: Expression -> Parser Expression
 list root = parenthesized $ expression root where
@@ -47,7 +46,6 @@ atom = fmap (readToken . uppercase) atom' where
     t <- token
     return t
 
--- endBy token space
   token = many1 valid
   valid = alphaNum <|> char '-'
   uppercase = map C.toUpper
@@ -62,10 +60,10 @@ space = oneOf $ ',' : ' ' : '\t' : '\r' : '\n' : []
 -- Printer
 type ShowExpression = Symbols -> String
 
-showExpr :: Expression -> ShowExpression
+-- showExpr :: Expression -> ShowExpression
 -- showExpr (car' `CONS` cdr') = ('[':) . showExpr car' . (' ':) . showExpr cdr' . (']':)
 --
--- showExpr ROOT' = (')':)
+-- showExpr NIL = (')':)
 -- showExpr (Token a) = (a++)
 -- showExpr a = shows a
 
@@ -79,17 +77,18 @@ showProgram = undefined
 -- F-Functions
 atomp :: Expression -> Bool
 atomp (_ `CONS` _) = False
+atomp NIL = False
 atomp _ = True
 
 listp :: Expression -> Bool
 listp = not . atomp
 
 car :: Expression -> Expression
-car (ROOT' `CONS` ROOT') = ROOT' `CONS` ROOT'
+car (NIL `CONS` NIL) = NIL
 car (car' `CONS` _) = car'
 
 cdr :: Expression -> Expression
-cdr (ROOT' `CONS` ROOT') = ROOT' `CONS` ROOT'
+cdr (NIL `CONS` NIL) = NIL
 cdr (_ `CONS` cdr') = cdr'
 
 eq :: Expression -> Expression -> Bool
@@ -111,10 +110,10 @@ type ResultTable = [(Parsed, Parsed)]
 
 table :: TestTable
 table =
-    ("( )", [ROOT' `CONS` ROOT']) :
-    ("(T T T )", [T `CONS` (T `CONS` (T `CONS` ROOT'))]):
-    ("(( ))", [(ROOT' `CONS` ROOT') `CONS` ROOT']):
-    ("(T )", [T `CONS` ROOT']) :
+    ("( )", [NIL `CONS` NIL]) :
+    ("(T T T )", [T `CONS` (T `CONS` (T `CONS` NIL))]):
+    ("(( ))", [(NIL `CONS` NIL) `CONS` NIL]):
+    ("(T )", [T `CONS` NIL]) :
     []
 
 test :: TestTable -> ResultTable
