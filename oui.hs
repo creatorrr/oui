@@ -125,8 +125,10 @@ test = map exec where
 
 -- TODO
 -- reconstitute NIL as empty list
--- make tests pass
 -- implement tree fold
+-- add collapse function
+-- fix printer
+-- improve testing function
 -- eval
 -- cond
 -- apply
