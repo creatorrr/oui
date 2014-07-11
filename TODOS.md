@@ -1,6 +1,5 @@
 # TODO
 
- - add collapse function
  - fix printer
  - improve testing function
  - eval
