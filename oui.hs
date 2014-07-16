@@ -6,7 +6,7 @@ import Text.Parsec.String
 
 -- Data Structures
 infixr 7 `CONS`
-data Tree a = Tree a `CONS` Tree a
+data Tree a = Tree a `CONS` Tree a | ROOT'
             | NIL | T
             | CAR | CDR | ATOMP | EQ | QUOTE | COND | LAMBDA
             | Token a
@@ -24,7 +24,7 @@ parseOui = parse program "oui"
 program :: Parser Program
 program = do
     whitespace
-    list NIL `sepEndBy1` spaces
+    list ROOT' `sepEndBy1` spaces
 
 list :: Expression -> Parser Expression
 list root = parenthesized $ expression root where
@@ -76,11 +76,11 @@ showExpr (car' `CONS` cdr') = ('(':) . showExpr car' . showRest cdr' . (')':) wh
 
   showRest :: Expression -> StringGen
   showRest (car' `CONS` cdr') = (' ':) . showExpr car' . showRest cdr'
-  showRest NIL = (""++)
+  showRest ROOT' = (""++)
   showRest a = ('.':) . showExpr a
 
 showExpr (Token a) = (a++)
-showExpr NIL = ("()"++)
+showExpr ROOT' = (""++)
 showExpr a = shows a
 
 showProgram :: Program -> String
@@ -89,18 +89,15 @@ showProgram = foldr showExpr ""
 -- F-Functions
 atomp :: Expression -> Bool
 atomp (_ `CONS` _) = False
-atomp NIL = False
 atomp _ = True
 
 listp :: Expression -> Bool
 listp = not . atomp
 
 car :: Expression -> Expression
-car (NIL `CONS` NIL) = NIL
 car (car' `CONS` _) = car'
 
 cdr :: Expression -> Expression
-cdr (NIL `CONS` NIL) = NIL
 cdr (_ `CONS` cdr') = cdr'
 
 eq :: Expression -> Expression -> Bool
@@ -122,10 +119,10 @@ type ResultTable = [(Parsed, Parsed)]
 
 table :: TestTable
 table =
-    ("()", [NIL `CONS` NIL]) :
-    ("(T T T)", [T `CONS` (T `CONS` (T `CONS` NIL))]):
-    ("(())", [(NIL `CONS` NIL) `CONS` NIL]):
-    ("(T)", [T `CONS` NIL]) :
+    ("()", [ROOT' `CONS` ROOT']) :
+    ("(T T T)", [T `CONS` (T `CONS` (T `CONS` ROOT'))]):
+    ("(())", [(ROOT' `CONS` ROOT') `CONS` ROOT']):
+    ("(T)", [T `CONS` ROOT']) :
     []
 
 test :: TestTable -> ResultTable
