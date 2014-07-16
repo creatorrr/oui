@@ -1,6 +1,7 @@
 # TODO
 
- - fix printer
+ - Add root back again, NIL == () is a stupid idea that is not really needed
+ - fix parser for spaces (hint: expression, backtrack trimming)
  - improve testing function
  - eval
  - cond

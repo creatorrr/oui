@@ -60,30 +60,31 @@ space = oneOf $ ',' : ' ' : '\t' : '\r' : '\n' : []
 -- Folder
 foldTreeL :: (a -> Tree b -> a) -> a -> Tree b -> a
 foldTreeL f v = foldl' where
-  foldl' (car' `CONS` cdr') = (foldl' car') `f` cdr'
+  foldl' (car' `CONS` cdr') = f (foldl' car') cdr'
   foldl' a = v `f` a
 
 foldTreeR :: (Tree a -> b -> b) -> b -> Tree a -> b
 foldTreeR f v = foldr' where
-  foldr' (car' `CONS` cdr') = car' `f` (foldr' cdr')
+  foldr' (car' `CONS` cdr') = f car' (foldr' cdr')
   foldr' a = a `f` v
 
 -- Printer
-type ShowExpression = Symbols -> String
+type StringGen = Symbols -> String
 
--- showExpr :: Expression -> ShowExpression
--- showExpr (car' `CONS` cdr') = ('[':) . showExpr car' . (' ':) . showExpr cdr' . (']':)
---
--- showExpr NIL = (')':)
--- showExpr (Token a) = (a++)
--- showExpr a = shows a
+showExpr :: Expression -> StringGen
+showExpr (car' `CONS` cdr') = ('(':) . showExpr car' . showRest cdr' . (')':) where
 
--- showProgram :: Program -> String
--- showProgram [] = ""
--- showProgram (e:es) = ('(':) . showExpr e $ showProgram es
+  showRest :: Expression -> StringGen
+  showRest (car' `CONS` cdr') = (' ':) . showExpr car' . showRest cdr'
+  showRest NIL = (""++)
+  showRest a = ('.':) . showExpr a
 
-showProgram :: a
-showProgram = undefined
+showExpr (Token a) = (a++)
+showExpr NIL = ("()"++)
+showExpr a = shows a
+
+showProgram :: Program -> String
+showProgram = foldr showExpr ""
 
 -- F-Functions
 atomp :: Expression -> Bool
@@ -121,10 +122,10 @@ type ResultTable = [(Parsed, Parsed)]
 
 table :: TestTable
 table =
-    ("( )", [NIL `CONS` NIL]) :
-    ("(T T T )", [T `CONS` (T `CONS` (T `CONS` NIL))]):
-    ("(( ))", [(NIL `CONS` NIL) `CONS` NIL]):
-    ("(T )", [T `CONS` NIL]) :
+    ("()", [NIL `CONS` NIL]) :
+    ("(T T T)", [T `CONS` (T `CONS` (T `CONS` NIL))]):
+    ("(())", [(NIL `CONS` NIL) `CONS` NIL]):
+    ("(T)", [T `CONS` NIL]) :
     []
 
 test :: TestTable -> ResultTable
