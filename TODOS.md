@@ -1,6 +1,7 @@
 # TODO
 
- - Reconstitute NIL as empty (FOR THE LAST TIME) :/
+ - scratch reinstating NIL
+ - fix parser
  - improve testing function
  - eval
  - cond
