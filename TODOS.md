@@ -1,6 +1,6 @@
 # TODO
 
- - fix parser for spaces (hint: expression, backtrack trimming)
+ - Reconstitute NIL as empty (FOR THE LAST TIME) :/
  - improve testing function
  - eval
  - cond

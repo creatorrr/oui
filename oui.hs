@@ -32,12 +32,15 @@ list root = parenthesized $ expression root where
 
 expression :: Expression -> Parser Expression
 expression root = do
-    whitespace
-    car' <- atom <|> (list root) <|> (return root)
-    cdr' <- restExpression <|> (return root)
-    return $ car' `CONS` cdr' where
+  whitespace
+  car' <- atom <|> (list root) <|> (return root)
+  cdr' <- restExpression <|> (return root)
 
-      restExpression = spaces >> expression root
+  if car' == ROOT' && cdr' == ROOT'
+    then return ROOT'
+    else return $ car' `CONS` cdr'
+
+  where restExpression = spaces >> expression root
 
 atom :: Parser Expression
 atom = fmap (readToken . uppercase) atom' where
