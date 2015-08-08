@@ -85,7 +85,7 @@ showExpr (car' `CONS` cdr') = ('(':) . showExpr car' . showRest cdr' . (')':) wh
   showRest a = ('.':) . showExpr a
 
 showExpr (Token a) = (a++)
-showExpr NIL = (""++)
+showExpr NIL = ("()"++)
 showExpr a = shows a
 
 showProgram :: Program -> String
@@ -124,9 +124,9 @@ type ResultTable = [(Parsed, Parsed)]
 
 table :: TestTable
 table =
-    ("()", [NIL `CONS` NIL]) :
+    ("()", [NIL]):
     ("(T T T)", [T `CONS` (T `CONS` (T `CONS` NIL))]):
-    ("(())", [(NIL `CONS` NIL) `CONS` NIL]):
+    ("(())", [NIL `CONS` NIL]):
     ("(T)", [T `CONS` NIL]) :
     []
 
