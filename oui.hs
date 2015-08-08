@@ -6,7 +6,7 @@ import Text.Parsec.String
 
 -- Data Structures
 infixr 7 `CONS`
-data Tree a = Tree a `CONS` Tree a | ROOT'
+data Tree a = Tree a `CONS` Tree a
             | NIL | T
             | CAR | CDR | ATOMP | EQ | QUOTE | COND | LAMBDA
             | Token a
@@ -24,7 +24,7 @@ parseOui = parse program "oui"
 program :: Parser Program
 program = do
     whitespace
-    list ROOT' `sepEndBy1` spaces
+    list NIL `sepEndBy1` spaces
 
 list :: Expression -> Parser Expression
 list root = parenthesized $ expression root where
@@ -36,8 +36,8 @@ expression root = do
   car' <- atom <|> (list root) <|> (return root)
   cdr' <- restExpression <|> (return root)
 
-  if car' == ROOT' && cdr' == ROOT'
-    then return ROOT'
+  if car' == NIL && cdr' == NIL
+    then return NIL
     else return $ car' `CONS` cdr'
 
   where restExpression = spaces >> expression root
@@ -79,11 +79,11 @@ showExpr (car' `CONS` cdr') = ('(':) . showExpr car' . showRest cdr' . (')':) wh
 
   showRest :: Expression -> StringGen
   showRest (car' `CONS` cdr') = (' ':) . showExpr car' . showRest cdr'
-  showRest ROOT' = (""++)
+  showRest NIL = (""++)
   showRest a = ('.':) . showExpr a
 
 showExpr (Token a) = (a++)
-showExpr ROOT' = (""++)
+showExpr NIL = (""++)
 showExpr a = shows a
 
 showProgram :: Program -> String
@@ -122,10 +122,10 @@ type ResultTable = [(Parsed, Parsed)]
 
 table :: TestTable
 table =
-    ("()", [ROOT' `CONS` ROOT']) :
-    ("(T T T)", [T `CONS` (T `CONS` (T `CONS` ROOT'))]):
-    ("(())", [(ROOT' `CONS` ROOT') `CONS` ROOT']):
-    ("(T)", [T `CONS` ROOT']) :
+    ("()", [NIL `CONS` NIL]) :
+    ("(T T T)", [T `CONS` (T `CONS` (T `CONS` NIL))]):
+    ("(())", [(NIL `CONS` NIL) `CONS` NIL]):
+    ("(T)", [T `CONS` NIL]) :
     []
 
 test :: TestTable -> ResultTable
