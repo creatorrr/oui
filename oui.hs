@@ -92,12 +92,15 @@ showProgram :: Program -> String
 showProgram = foldr showExpr ""
 
 -- F-Functions
-atomp :: Expression -> Bool
-atomp (_ `CONS` _) = False
-atomp _ = True
+atomp :: Expression -> Boole
+atomp (_ `CONS` _) = NIL
+atomp NIL = NIL
+atomp _ = T
 
-listp :: Expression -> Bool
-listp = not . atomp
+listp :: Expression -> Boole
+listp (_ `CONS` _) = T
+listp NIL = T
+listp _ = NIL
 
 car :: Expression -> Expression
 car (car' `CONS` _) = car'
@@ -105,17 +108,21 @@ car (car' `CONS` _) = car'
 cdr :: Expression -> Expression
 cdr (_ `CONS` cdr') = cdr'
 
-eq :: Expression -> Expression -> Bool
-eq x y = x == y
+eq :: Expression -> Expression -> Boole
+eq x y = toBoole $ x == y
 
 -- S-Functions
 quote :: Expression -> Expression
 quote x = x
 
 -- Utils
-truthy :: Bool -> Boole
-truthy False = NIL
-truthy _ = T
+toBoole :: Bool -> Boole
+toBoole False = NIL
+toBoole _ = T
+
+toBool :: Boole -> Bool
+toBool NIL = False
+toBool _ = True
 
 -- Tests
 type Parsed = Bool
