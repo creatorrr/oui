@@ -6,12 +6,16 @@ import Text.Parsec.String
 
 -- Data Structures
 infixr 7 `CONS`
-data Tree a = Tree a `CONS` Tree a
-            | NIL | T
+data Tree a = Tree a `CONS` Tree a | NIL
+            -- Primitives
+            | T
             | CAR | CDR | ATOMP | EQ | QUOTE | COND | LAMBDA
+
+            -- Container for user defined tokens
             | Token a
             deriving (Eq, Show, Read)
 
+-- Synonyms for commonly used types
 type Symbols = String
 type Expression = Tree Symbols
 type Boole = Expression -- NIL and T
@@ -34,9 +38,11 @@ expression :: Expression -> Parser Expression
 expression root = do
   whitespace
   do
+    -- Try to see if empty list
     lookAhead $ try $ char ')'
     return root
   <|> do
+    -- else parse expression
     car' <- atom <|> (list root) <|> (return root)
     cdr' <- restExpression <|> (return root)
 
@@ -62,7 +68,7 @@ whitespace = many space
 spaces = many1 space
 space = oneOf $ ',' : ' ' : '\t' : '\r' : '\n' : []
 
--- Folder
+-- Folders
 foldTreeL :: (a -> Tree b -> a) -> a -> Tree b -> a
 foldTreeL f v = foldl' where
   foldl' (car' `CONS` cdr') = f (foldl' car') cdr'
@@ -82,6 +88,8 @@ showExpr (car' `CONS` cdr') = ('(':) . showExpr car' . showRest cdr' . (')':) wh
   showRest :: Expression -> StringGen
   showRest (car' `CONS` cdr') = (' ':) . showExpr car' . showRest cdr'
   showRest NIL = (""++)
+
+  -- Dotted lists support
   showRest a = ('.':) . showExpr a
 
 showExpr (Token a) = (a++)
@@ -91,7 +99,10 @@ showExpr a = shows a
 showProgram :: Program -> String
 showProgram = foldr showExpr ""
 
--- F-Functions
+-- Define primitives from McCarthy's paper
+-- http://www-formal.stanford.edu/jmc/recursive.pdf
+
+-- F-Functions (Basic predicates)
 atomp :: Expression -> Boole
 atomp (_ `CONS` _) = NIL
 atomp NIL = NIL
@@ -111,7 +122,7 @@ cdr (_ `CONS` cdr') = cdr'
 eq :: Expression -> Expression -> Boole
 eq x y = toBoole $ x == y
 
--- S-Functions
+-- S-Functions (Functions to operate on s-expressions)
 quote :: Expression -> Expression
 quote x = x
 
