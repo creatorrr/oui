@@ -126,6 +126,19 @@ eq x y = toBoole $ x == y
 quote :: Expression -> Expression
 quote x = x
 
+when :: Expression -> Expression
+when (pred `CONS` action) = if (toBool . apply) pred then (apply action) else NIL
+
+apply :: Expression -> Expression
+apply (QUOTE `CONS` cdr') = cdr'
+apply (ATOMP `CONS` cdr') = atomp cdr'
+apply (EQ `CONS` ((Token a) `CONS` (Token b))) = eq a b
+apply (CAR `CONS` cdr') = car cdr'
+apply (CDR `CONS` cdr') = cdr cdr'
+
+-- cond
+-- lambda
+
 -- Utils
 toBoole :: Bool -> Boole
 toBoole False = NIL
