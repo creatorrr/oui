@@ -32,24 +32,27 @@ program = do
     list NIL `sepEndBy1` spaces
 
 list :: Expression -> Parser Expression
-list root = parenthesized $ expression root where
-  parenthesized = between (char '(') (char ')')
+list root = do
+  parenthesized $ do
+    -- Try to see if empty list
+    whitespace
+    lookAhead $ try $ char ')'
+    return root
+
+    -- else parse expression
+    <|> expression root
+
+  where parenthesized = between (char '(') (char ')')
 
 expression :: Expression -> Parser Expression
 expression root = do
   whitespace
-  do
-    -- Try to see if empty list
-    lookAhead $ try $ char ')'
-    return root
-  <|> do
-    -- else parse expression
-    car' <- atom <|> (list root) <|> (return root)
-    cdr' <- restExpression <|> (return root)
+  car' <- atom <|> (list root) <|> (return root)
+  cdr' <- restExpression <|> (return root)
 
-    return $ car' `CONS` cdr'
+  return $ car' `CONS` cdr'
 
-    where restExpression = spaces >> expression root
+  where restExpression = spaces >> expression root
 
 atom :: Parser Expression
 atom = fmap (readToken . uppercase) atom' where
@@ -157,7 +160,7 @@ type ResultTable = [(Parsed, Parsed)]
 table :: TestTable
 table =
     ("()", [NIL]):
-    ("(T T T)", [T `CONS` (T `CONS` (T `CONS` NIL))]):
+    ("(T T T)", [T `CONS` T `CONS` T `CONS` NIL]):
     ("(())", [NIL `CONS` NIL]):
     ("(T)", [T `CONS` NIL]) :
     []
