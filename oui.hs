@@ -1,3 +1,4 @@
+import Prelude hiding (EQ)
 import qualified Data.Char as C
 import qualified Control.Monad as M
 
@@ -132,7 +133,7 @@ when (pred `CONS` action) = if (toBool . apply) pred then (apply action) else NI
 apply :: Expression -> Expression
 apply (QUOTE `CONS` cdr') = cdr'
 apply (ATOMP `CONS` cdr') = atomp cdr'
-apply (EQ `CONS` ((Token a) `CONS` (Token b))) = eq a b
+apply (EQ `CONS` (a `CONS` b)) = eq a b
 apply (CAR `CONS` cdr') = car cdr'
 apply (CDR `CONS` cdr') = cdr cdr'
 
